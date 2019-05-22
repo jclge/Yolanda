@@ -40,8 +40,12 @@ def help():
     exit(0)
 
 def main(argv):
-    if (argv[1] == '--help'):
-        help()
+    if (len(argv) > 1):
+        if (argv[1] == '--help'):
+            help()
+    if (len(argv) != 4):
+        print colored("Error : Not enough arguments, --help for help", 'red')
+        exit(84)
     print 'Initialisation...'
     bar_len = 100
     equal = colored('#', 'green')
