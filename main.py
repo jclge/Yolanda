@@ -4,32 +4,17 @@ from math import sqrt
 from termcolor import colored
 from multiprocessing.dummy import Pool as ThreadPool
 import sys
+import cv2
+from pathlib import *
 from sys import stdout
 from time import clock
 import os
 
 RED = 0
-LIGHT_RED = 0
-DARK_RED = 0
 GREEN = 0
-LIGHT_GREEN = 0
-DARK_GREEN = 0
-GREEN_BLUE = 0
-LIGHT_GREEN_BLUE = 0
-DARK_GREEN_BLUE = 0
 BLUE = 0
-LIGHT_BLUE = 0
-DARK_BLUE = 0
 PURPLE = 0
-DARK_PURPLE = 0
-LIGHT_PURPLE = 0
 YELLOW = 0
-DARK_YELLOW = 0
-LIGHT_YELLOW = 0
-ORANGE = 0
-BROWN = 0
-BEIGE = 0
-FUCHSIA = 0
 BLACK = 0
 WHITE = 0
 GREY = 0
@@ -43,36 +28,38 @@ def main(argv):
     if (len(argv) > 1):
         if (argv[1] == '--help'):
             help()
-    if (len(argv) != 4):
+    if (len(argv) != 6):
         print colored("Error : Not enough arguments, --help for help", 'red')
         exit(84)
     print 'Initialisation...'
+    print colored("Getting Video...\n", 'yellow')
+    cam = cv2.VideoCapture(argv[5])
+    print colored("Success, '" + argv[4] + "' opened" , 'green')
+    cur_frame = 1
+    framerate = cam.get(cv2.cv.CV_CAP_PROP_FPS)
+    framerate = framerate / int(argv[3])
+    check_fr = 0
+    ret, frame=cam.read()
+    while ret:
+        if ret and check_fr == int(framerate):
+            if (os.path.exists(argv[1] + str(cur_frame) + argv[2]) == False):
+                name = argv[1] + str(cur_frame) + argv[2]
+                print "File", colored(name, 'blue'), colored(" Created", 'green')
+                cv2.imwrite(name, frame)
+            check_fr = 0
+            cur_frame += 1
+        check_fr += 1
+        ret, frame=cam.read()
+    cur_frame -= 1
     bar_len = 100
     equal = colored('#', 'green')
     sep = colored('=', 'red')
     seconds = clock()
     colors = [[255, 0, 0, "RED"],
-    #[255, 102, 102, "LIGHT_RED"],
-    #[153, 0, 0, "DARK_RED"],
     [0, 255, 0, "GREEN"],
-    #[102, 255, 102, "LIGHT_GREEN"],
-    #[0, 153, 0, "DARK_GREEN"],
     [0, 0, 255, "BLUE"],
-    #[0, 204, 204, "GREEN_BLUE"],
-    #[0, 255, 255, "LIGHT_GREEN_BLUE"],
-    #[0, 170, 170, "DARK_GREEN_BLUE"],
-    #[153, 255, 255, "LIGHT_BLUE"],
-    #[0, 0, 102, "DARK_BLUE"],
     [255, 0, 255, "PURPLE"],
-    #[102, 0, 102, "DARK_PURPLE"],
-    #[255, 153, 255, "LIGHT_PURPLE"],
     [255, 255, 0, "YELLOW"],
-    #[153, 153, 0, "DARK_YELLOW"],
-    #[255, 255, 153, "LIGHT_YELLOW"],
-    #[255, 128, 0, "ORANGE"],
-    #[153, 75, 0, "BROWN"],
-    #[255, 204, 153, "BEIGE"],
-    #[255, 0, 127, "FUCHSIA"],
     [0, 0, 0, "BLACK"],
     [255, 255, 255, "WHITE"],
     [33, 33, 33, "GREY"]]
@@ -82,13 +69,15 @@ def main(argv):
     j = 0
     h = -1
     u = '%'
+    trash = 0
     res = 1000
+    print colored("Video has been turned into images\n\n", "green")
     path = argv[1] + '1' + argv[2]
     image = Image.open(path)
     pic = image.load()
     size = image.size
     cm1 = 1
-    check_files = ['0'] * int(argv[3])
+    check_files = ['0'] * cur_frame
     check_files[0] = 0
     ws = 0
     cm = 1
@@ -96,9 +85,9 @@ def main(argv):
     y = size[0]
     x = size[1]
     path = argv[1] + '%s' + argv[2]
-    while (cm1 - 1 != int(argv[3])):
+    while (cm1 - 1 != cur_frame):
         if (os.path.exists(path % cm1)):
-            print 'File ', colored(path % cm1, 'blue'), colored(" OK", 'green')
+            trash += 1
         else:
             print 'File ', colored(path % cm1, 'blue'), colored(" FAILED", 'red')
             check_files[ws] = path % cm1
@@ -107,7 +96,7 @@ def main(argv):
     if (check_files[0] != 0):
         print colored("Error: Invalid files", 'red', attrs=['bold'])
         ws = 0
-        print colored("Incriminated filesx: ", 'red', attrs=['bold'])
+        print colored("Incriminated files: ", 'red', attrs=['bold'])
         while check_files[ws] != '0':
             print colored('[', 'red'), colored(check_files[ws], 'blue'), colored(']', 'red')
             ws += 1
@@ -167,6 +156,11 @@ def main(argv):
     print "\nBlack : ", "%.4f" % (BLACK * 100.00 / ((y * x) * (cm - 1))), "%"
     print "White : ", "%.4f" % (WHITE * 100.00 / ((y * x) * (cm - 1))), "%"
     print "Grey : ", "%.4f" % (GREY * 100.00 / ((y * x) * (cm - 1))), "%"
+    fd = open("db.txt", "rw+")
+    fd.seek(0, 2)
+    db_res = argv[4] + ' , ' + str((RED * 100.00 / ((y * x) * (cm - 1)))) + ' ; ' + str((GREEN * 100.00 / ((y * x) * (cm - 1)))) + ' ; ' + str((BLUE * 100.00 / ((y * x) * (cm - 1)))) + ' ; ' + str((PURPLE * 100.00 / ((y * x) * (cm - 1)))) + ' ; ' + str((GREY * 100.00 / ((y * x) * (cm - 1)))) + ' ; ' + str((WHITE * 100.00 / ((y * x) * (cm - 1)))) + ' ; ' + str((BLACK * 100.00 / ((y * x) * (cm - 1)))) + '\n'
+    fd.write(db_res)
+    fd.close()
 
 if __name__ == "__main__":
     main(sys.argv)
