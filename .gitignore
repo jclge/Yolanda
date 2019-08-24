@@ -102,3 +102,12 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+#other
+*.jpg
+*.png
+*.mp4
+*.avi
+*.raw
+*.svg
+*.gif
