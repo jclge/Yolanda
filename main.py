@@ -5,8 +5,11 @@ import sys
 import cv2
 from pathlib import *
 from sys import stdout
+import numpy
+import random
 from time import time
 import shutil
+import csv
 import os
 
 RED = 0
@@ -30,7 +33,6 @@ def main(argv):
     if (len(argv) != 6):
         print (colored("Error : Not enough arguments, --help for help", 'red'))
         exit()
-    t0 = time()
     print ('Initialisation...')
     print (colored("Getting Video...\n", 'yellow'))
     cam = cv2.VideoCapture(argv[5])
@@ -108,16 +110,17 @@ def main(argv):
         print (colored(colors[ptr][3], 'blue', attrs=['dark']))
         ptr += 1
     cm2 = cm * 100.00 / cm1
+    t0 = time()
     seconds = time() - t0
     mins = seconds / 60.00
-    estim = total_pix * 0.000005 * cm1 / 60.00
+    estim = total_pix * 0.0000045 * cm1 / 60.00
     print("Estimitated time: ", int(estim), " minutes")
     filled_len = int(round(bar_len * cm2 / float(100)))
     percents = round(100.0 * cm2 / float(100), 1)
     bar = equal * filled_len + sep * (bar_len - filled_len)
     stdout.write('Evolution : \n')
     sys.stdout.write('[%s] %s%s%s%.1f%s%s%s\r' % (bar, percents, '%', colored(" Time passed : ", 'green'), mins, " minutes", colored(" Image N*", 'blue'), colored(cm - 1, 'blue')))
-    sys.stdout.flush() 
+    sys.stdout.flush()
     while (cm != cm1):
         image = Image.open(path % cm)
         pic = image.load()
@@ -156,7 +159,7 @@ def main(argv):
         bar = equal * filled_len + sep * (bar_len - filled_len)
         remain = (mins / percents) * (100 - percents)
         remain = float("{0:.2f}".format(remain))
-        sys.stdout.write('[%s] %s%s%s%.1f%s%s%s%s%s%s\r' % (bar, percents, '%', colored(" Time passed : ", 'green'), mins, " minutes", colored(" Image N*", 'blue'), colored(cm - 1, 'blue'), colored(" Time Remaining: ", 'red'), colored(str(remain), 'red'), colored(' minutes', 'red')))
+        sys.stdout.write('[%s] %s%s%s%.1f%s%s%s%s%s%s\r' % (bar, percents, '%', colored(" Time passed : ", 'green'), mins, " minutes", colored(" Image N*", 'blue'), colored(cm - 1, 'blue'), colored(" Time Remaining: ", 'red'), colored(str(remain), 'red'), colored(' minutes       ', 'red')))
         sys.stdout.flush()
 
     print (colored("\n\nSUCCESS\n", 'green', attrs=['bold']))
@@ -169,10 +172,9 @@ def main(argv):
     print ("\nBlack : ", "%.4f" % (BLACK * 100.00 / ((y * x) * (cm - 1))), "%")
     print ("White : ", "%.4f" % (WHITE * 100.00 / ((y * x) * (cm - 1))), "%")
     print ("Grey : ", "%.4f" % (GREY * 100.00 / ((y * x) * (cm - 1))), "%")
-    fd = open("db.txt", "r+")
+    fd = open("db.csv", "r+")
     fd.seek(0, 2)
-    print (time() - t0)
-    db_res = argv[4] + ' , ' + str((RED * 100.00 / ((y * x) * (cm - 1)))) + ' ; ' + str((GREEN * 100.00 / ((y * x) * (cm - 1)))) + ' ; ' + str((BLUE * 100.00 / ((y * x) * (cm - 1)))) + ' ; ' + str((PURPLE * 100.00 / ((y * x) * (cm - 1)))) + ' ; ' + str((GREY * 100.00 / ((y * x) * (cm - 1)))) + ' ; ' + str((WHITE * 100.00 / ((y * x) * (cm - 1)))) + ' ; ' + str((BLACK * 100.00 / ((y * x) * (cm - 1)))) + '\n'
+    db_res = argv[4] + ',' + str((RED * 100.00 / ((y * x) * (cm - 1)))) + ',' + str((GREEN * 100.00 / ((y * x) * (cm - 1)))) + ',' + str((BLUE * 100.00 / ((y * x) * (cm - 1)))) + ',' + str((PURPLE * 100.00 / ((y * x) * (cm - 1)))) + ',' + str((YELLOW * 100.00 / ((y * x) * (cm - 1)))) +',' + str((GREY * 100.00 / ((y * x) * (cm - 1)))) + ',' + str((WHITE * 100.00 / ((y * x) * (cm - 1)))) + ',' + str((BLACK * 100.00 / ((y * x) * (cm - 1)))) + '\n'
     fd.write(db_res)
     fd.close()
     for the_file in os.listdir("test/"):
@@ -180,6 +182,11 @@ def main(argv):
         if os.path.isfile(file_path):
             os.unlink(file_path)
     #go though data analysis (machine learning) to know which category/director this movie is from -> data
+    filename = 'db.csv'
+    raw_data = open(filename, 'rt')
+    reader = csv.reader(raw_data, delimiter=',', quoting=csv.QUOTE_NONE)
+    x = list(reader)
+    data = numpy.array(x)
 
 if __name__ == "__main__":
     main(sys.argv)
