@@ -34,6 +34,7 @@ def help():
     print("python Yolanda [directory] [type_of_picture] [number_of_frames_per_second] [name] [video_source]")
     exit()
 
+#euclidean difference calculation
 def euclidean_difference(value_1, value_2, value_3, value_color_1, value_color_2, value_color_3):
     return(sqrt(( 2 * (value_color_1 - value_1) ** 2) + (4 * (value_color_2 - value_1) ** 2) + (3 * (value_color_3 - value_3) ** 2)))
 
@@ -82,6 +83,7 @@ class Yolanda:
         self.bar = None
         self.list_c = None
 
+    #split videos into images
     def create_images(self):
         global argv
         print ('Initialisation...')
@@ -118,6 +120,7 @@ class Yolanda:
         [255, 255, 255, "WHITE"],
         [33, 33, 33, "GREY"]]
 
+    #checking args
     def error_management(self):
         global argv
         if (len(argv) > 1):
@@ -127,6 +130,7 @@ class Yolanda:
             print (colored("Error : Not enough arguments, --help for help", 'red'))
             exit()
 
+    #variables initalization
     def initialize_main_variables(self):
         global argv
         self.i = 1
@@ -150,6 +154,7 @@ class Yolanda:
         self.total_pix = self.y * self.x
         self.path = argv[1] + '%s' + argv[2]
     
+        #print of results
     def print_results(self):
         print (colored("\n\nSUCCESS\n", 'green', attrs=['bold']))
         print (colored("Red : ", 'red'), "%.4f" % (RED * 100.00 / ((self.y * self.x) * (self.cm - 1))), "%")
@@ -162,6 +167,7 @@ class Yolanda:
         print ("White : ", "%.4f" % (WHITE * 100.00 / ((self.y * self.x) * (self.cm - 1))), "%")
         print ("Grey : ", "%.4f" % (GREY * 100.00 / ((self.y * self.x) * (self.cm - 1))), "%")
 
+    #Checking images extracted
     def check_files_integrity(self):
         while (self.cm1 - 1 != self.cur_frame):
             if (os.path.exists(self.path % self.cm1)):
@@ -180,6 +186,7 @@ class Yolanda:
                 self.ws += 1
             exit()
 
+    # Setting time to display the charging bar and set the bar itself
     def set_time(self):
         self.cm2 = self.cm * 100.00 / self.cm1
         self.t0 = time()
@@ -194,9 +201,11 @@ class Yolanda:
         sys.stdout.write('[%s] %s%s%s%.1f%s%s%s\r' % (self.bar, self.percents, '%', colored(" Time passed : ", 'green'), self.mins, " minutes", colored(" Image N*", 'blue'), colored(self.cm - 1, 'blue')))
         sys.stdout.flush()
 
+    # Adding colors to globals
     def set_colors(self):
         globals()[self.colors[self.h][3]] += 1
 
+    # get .csv and parse it into pandas dataset
     def get_dataset(self, set):
         global data
         data = pd.read_csv(set, delimiter=',')
@@ -206,6 +215,7 @@ class Yolanda:
         tuples = [tuple(y) for y in data_to_analyse.values]
         return (tuples)
 
+    # KNN
     def neirest_neighbors(self):
         global data
         tuples = self.get_dataset("db.csv")
@@ -220,6 +230,7 @@ class Yolanda:
         print(colored(res[0], 'green', attrs=['bold']))
         return (res[0])
 
+    #main loop, checking colors
     def main_loop(self):
         while (self.cm != self.cm1):
             self.image = Image.open(self.path % self.cm)
@@ -262,6 +273,7 @@ class Yolanda:
             sys.stdout.write('[%s] %s%s%s%.1f%s%s%s%s%s%s\r' % (self.bar, self.percents, '%', colored(" Time passed : ", 'green'), self.mins, " minutes", colored(" Image N*", 'blue'), colored(self.cm - 1, 'blue'), colored(" Time Remaining: ", 'red'), colored(str(self.remain), 'red'), colored(' minutes       ', 'red')))
             sys.stdout.flush()
 
+    # main
     def main(self):
         global argv
         self.error_management()
@@ -285,6 +297,7 @@ class Yolanda:
            print(colored('\nDone!', 'green'))
         fd.close()
 
+#checking gpu & calling Yolanda 
 if __name__ == "__main__":
     gpus = tf.config.experimental.list_physical_devices('GPU')
     if gpus:
